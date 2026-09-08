@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Desafío de Física y Química - 1º Bachillerato</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js" onload="renderMathInElement(document.body);"></script>
+  <style>
+    @keyframes pulse-light {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.03); }
+    }
+    .pulse-card {
+      animation: pulse-light 2s infinite ease-in-out;
+    }
+  </style>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen flex flex-col font-sans">
+
+  <!-- Header -->
+  <header class="bg-slate-800 border-b border-slate-700 p-4 sticky top-0 z-10 shadow-md">
+    <div class="max-w-4xl mx-auto flex justify-between items-center">
+      <h1 class="text-xl md:text-2xl font-bold bg-gradient-to-r from-cyan-400 to-indigo-400 bg-clip-text text-transparent">
+        ⚛️ Desafío FyQ 1º Bachillerato
+      </h1>
+      <div id="stats-header" class="hidden flex gap-4 text-sm md:text-base font-semibold">
+        <span class="bg-slate-700 px-3 py-1 rounded-full text-cyan-300">Puntos: <span id="score">0</span></span>
+        <span class="bg-slate-700 px-3 py-1 rounded-full text-amber-300">Racha: 🔥 <span id="streak">0</span></span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="flex-1 max-w-3xl w-full mx-auto p-4 flex flex-col justify-center">
+
+    <!-- Start Screen -->
+    <div id="start-screen" class="bg-slate-800 border border-slate-700 rounded-2xl p-6 md:p-8 text-center shadow-2xl">
+      <div class="text-5xl mb-4">🧪⚡</div>
+      <h2 class="text-2xl md:text-3xl font-bold mb-4 text-slate-100">¿Preparado para repasar?</h2>
+      <p class="text-slate-300 mb-6 leading-relaxed">
+        Pon a prueba tus conocimientos sobre **Cinemática, Dinámica, Energía, Formulación Inorgánica y Estequiometría**. Responde a las preguntas y comprueba tu explicación en cada paso.
+      </p>
+      <div class="grid grid-cols-2 md:grid-cols-3 gap-3 text-left mb-8 text-xs md:text-sm text-slate-400">
+        <div class="bg-slate-900/50 p-2.5 rounded-lg border border-slate-700/50">🚀 Cinemática (MRUA, MCU)</div>
+        <div class="bg-slate-900/50 p-2.5 rounded-lg border border-slate-700/50">⚖️ Leyes de Newton</div>
+        <div class="bg-slate-900/50 p-2.5 rounded-lg border border-slate-700/50">⚡ Conservación Energía</div>
+        <div class="bg-slate-900/50 p-2.5 rounded-lg border border-slate-700/50">🧪 Nomenclatura IUPAC</div>
+        <div class="bg-slate-900/50 p-2.5 rounded-lg border border-slate-700/50">💥 Masa Molar y Reactivos</div>
+        <div class="bg-slate-900/50 p-2.5 rounded-lg border border-slate-700/50">🎯 Explicaciones paso a paso</div>
+      </div>
+      <button onclick="startGame()" class="w-full md:w-auto px-8 py-3.5 bg-indigo-600 hover:bg-indigo-500 font-bold text-lg rounded-xl transition duration-200 shadow-lg shadow-indigo-600/30">
+        Comenzar el Repaso
+      </button>
+    </div>
+
+    <!-- Question Screen -->
+    <div id="quiz-screen" class="hidden flex-col gap-4">
+      <!-- Progress Bar -->
+      <div class="w-full bg-slate-800 rounded-full h-3 border border-slate-700 overflow-hidden">
+        <div id="progress-bar" class="bg-indigo-500 h-full transition-all duration-300" style="width: 0%"></div>
+      </div>
+
+      <!-- Question Card -->
+      <div class="bg-slate-800 border border-slate-700 rounded-2xl p-6 shadow-xl relative">
+        <div class="flex justify-between items-center mb-3">
+          <span id="topic-badge" class="text-xs uppercase tracking-wider font-semibold px-2.5 py-1 rounded-md bg-indigo-950 text-indigo-300 border border-indigo-800">
+            Bloque
+          </span>
+          <span id="question-count" class="text-xs text-slate-400 font-medium">Pregunta 1 de 10</span>
+        </div>
+
+        <h3 id="question-text" class="text-lg md:text-xl font-semibold mb-6 text-slate-100 leading-snug">
+          Cargando pregunta...
+        </h3>
+
+        <!-- Options Container -->
+        <div id="options-container" class="flex flex-col gap-3">
+          <!-- Dynamically filled -->
+        </div>
+
+        <!-- Explanation Container -->
+        <div id="explanation-box" class="hidden mt-6 p-4 rounded-xl border bg-slate-900/80 border-slate-700 text-sm leading-relaxed">
+          <div id="explanation-title" class="font-bold mb-1"> Explicación</div>
+          <div id="explanation-text" class="text-slate-300"></div>
+        </div>
+
+        <!-- Next Button -->
+        <button id="next-btn" onclick="nextQuestion()" class="hidden mt-6 w-full py-3 bg-indigo-600 hover:bg-indigo-500 font-bold rounded-xl transition duration-200 shadow-lg">
+          Siguiente Pregunta ➡️
+        </button>
+      </div>
+    </div>
+
+    <!-- Result Screen -->
+    <div id="result-screen" class="hidden bg-slate-800 border border-slate-700 rounded-2xl p-6 md:p-8 text-center shadow-2xl">
+      <div id="result-icon" class="text-6xl mb-4">🏆</div>
+      <h2 id="result-title" class="text-2xl md:text-3xl font-bold mb-2">¡Completado!</h2>
+      <p id="result-subtitle" class="text-slate-300 mb-6">Aquí tienes el resumen de tu rendimiento.</p>
+
+      <div class="grid grid-cols-2 gap-4 max-w-sm mx-auto mb-8">
+        <div class="bg-slate-900 p-4 rounded-xl border border-slate-700">
+          <div class="text-3xl font-extrabold text-cyan-400" id="final-score">0</div>
+          <div class="text-xs text-slate-400 uppercase tracking-wider mt-1">Puntuación Final</div>
+        </div>
+        <div class="bg-slate-900 p-4 rounded-xl border border-slate-700">
+          <div class="text-3xl font-extrabold text-amber-400" id="final-accuracy">0%</div>
+          <div class="text-xs text-slate-400 uppercase tracking-wider mt-1">Aciertos</div>
+        </div>
+      </div>
+
+      <button onclick="startGame()" class="px-8 py-3.5 bg-indigo-600 hover:bg-indigo-500 font-bold text-lg rounded-xl transition duration-200 shadow-lg shadow-indigo-600/30">
+        Intentar de nuevo 🔄
+      </button>
+    </div>
+
+  </main>
+
+  <!-- Script -->
+  <script>
+    const questions = [
+      {
+        topic: "Cinemática",
+        question: "Un móvil parte del reposo y se desplaza con una aceleración constante de $2\\text{ m/s}^2$. ¿Qué distancia habrá recorrido al cabo de $5\\text{ s}$?",
+        options: [
+          { text: "$10\\text{ m}$", correct: false, explanation: "Incorrecto. Se calcula con $d = v_0 t + \\frac{1}{2}a t^2$. Recuerda elevar el tiempo al cuadrado: $5^2 = 25$." },
+          { text: "$25\\text{ m}$", correct: true, explanation: "¡Correcto! Usando la fórmula del MRUA: $d = 0 \\cdot 5 + \\frac{1}{2}(2)(5^2) = 25\\text{ m}$." },
+          { text: "$50\\text{ m}$", correct: false, explanation: "Incorrecto. Olvidaste multiplicar por el factor $\\frac{1}{2}$ en la fórmula del desplazamiento." },
+          { text: "$20\\text{ m}$", correct: false, explanation: "Incorrecto. Recuerda usar $d = \\frac{1}{2} a t^2$ para un movimiento con aceleración constante que parte del reposo." }
+        ]
+      },
+      {
+        topic: "Dinámica",
+        question: "Un bloque de $5\\text{ kg}$ de masa se empuja con una fuerza horizontal de $30\\text{ N}$ sobre una superficie horizontal con coeficiente de rozamiento $\\mu = 0,2$. ¿Cuál es su aceleración? (Toma $g = 9,8\\text{ m/s}^2$)",
+        options: [
+          { text: "$4,04\\text{ m/s}^2$", correct: true, explanation: "¡Correcto! La fuerza de rozamiento es $F_r = \\mu m g = 0,2 \\cdot 5 \\cdot 9,8 = 9,8\\text{ N}$. Aplicando la segunda ley de Newton: $F_{net} = 30 - 9,8 = 20,2\\text{ N}$. Por tanto, $a = \\frac{20,2}{5} = 4,04\\text{ m/s}^2$." },
+          { text: "$6,00\\text{ m/s}^2$", correct: false, explanation: "Incorrecto. Has ignorado la fuerza de rozamiento ($a = \\frac{F}{m} = 6$). La fuerza neta es $F - F_r$." },
+          { text: "$2,04\\text{ m/s}^2$", correct: false, explanation: "Incorrecto. Revisa el cálculo de la fuerza de rozamiento $F_r = \\mu \\cdot N = \\mu \\cdot m \\cdot g$." },
+          { text: "$5,80\\text{ m/s}^2$", correct: false, explanation: "Incorrecto. Recuerda restar la fuerza de rozamiento antes de dividir por la masa para obtener la aceleración." }
+        ]
+      },
+      {
+        topic: "Energía",
+        question: "Se deja caer un objeto de $2\\text{ kg}$ desde una altura de $10\\text{ m}$. Despreciando el rozamiento con el aire, ¿con qué velocidad llegará al suelo? ($g = 9,8\\text{ m/s}^2$)",
+        options: [
+          { text: "$19,6\\text{ m/s}$", correct: false, explanation: "Incorrecto. $19,6$ es el valor de $v^2$. Falta hacer la raíz cuadrada: $v = \\sqrt{196}$." },
+          { text: "$14,0\\text{ m/s}$", correct: true, explanation: "¡Correcto! Por conservación de la energía mecánica: $m g h = \\frac{1}{2} m v^2 \\implies v = \\sqrt{2 g h} = \\sqrt{2 \\cdot 9,8 \\cdot 10} = \\sqrt{196} = 14\\text{ m/s}$." },
+          { text: "$9,8\\text{ m/s}$", correct: false, explanation: "Incorrecto. Aplica el principio de conservación de la energía: $E_{p,inicial} = E_{k,final}$." },
+          { text: "$28,0\\text{ m/s}$", correct: false, explanation: "Incorrecto. Revisa la fórmula $v = \\sqrt{2gh}$." }
+        ]
+      },
+      {
+        topic: "Formulación Inorgánica",
+        question: "¿Cuál es la fórmula correcta del **trióxido de dihierro** (o óxido de hierro (III))?",
+        options: [
+          { text: "$\\text{FeO}$", correct: false, explanation: "Incorrecto. $\\text{FeO}$ es el monóxido de hierro u óxido de hierro (II)." },
+          { text: "$\\text{Fe}_2\\text{O}_3$", correct: true, explanation: "¡Correcto! El hierro actúa con número de oxidación $+3$ y el oxígeno con $-2$, intercambiando valencias se obtiene $\\text{Fe}_2\\text{O}_3$." },
+          { text: "$\\text{Fe}_3\\text{O}_2$", correct: false, explanation: "Incorrecto. Recuerda que el oxígeno actúa con estado de oxidación $-2$ y va a la derecha." },
+          { text: "$\\text{FeO}_3$", correct: false, explanation: "Incorrecto. Los subíndices provienen del intercambio de valencias entre el hierro (+3) y el oxígeno (-2)." }
+        ]
+      },
+      {
+        topic: "Formulación Inorgánica",
+        question: "¿Cómo se nombra según la IUPAC (nomenclatura de composición/sistemática) el compuesto $\\text{H}_2\\text{SO}_4$?",
+        options: [
+          { text: "Ácido sulfúrico", correct: false, explanation: "Aunque es su nombre tradicional común, la nomenclatura IUPAC sistemática de composición usa prefijos multiplicadores o de hidrógeno." },
+          { text: "Dihidrógenotetraóxidosulfato", correct: true, explanation: "¡Correcto! En la nomenclatura de hidrógeno formal de la IUPAC se nombra como dihidrógenotetraóxidosulfato." },
+          { text: "Sulfato de hidrógeno", correct: false, explanation: "Incompleto. Falta indicar la cantidad de oxígenos e hidrógenos según las normas formales sistemáticas." },
+          { text: "Óxido de azufre e hidrógeno", correct: false, explanation: "Incorrecto. Es un oxoácido formado por hidrógeno, azufre y oxígeno." }
+        ]
+      },
+      {
+        topic: "Estequiometría",
+        question: "Dada la reacción equilibrada: $\\text{N}_2 + 3\\text{H}_2 \\rightarrow 2\\text{NH}_3$. ¿Cuántos moles de $\\text{NH}_3$ se producen al reaccionar completamente $6\\text{ moles}$ de $\\text{H}_2$ con suficiente $\\text{N}_2$?",
+        options: [
+          { text: "$2\\text{ moles}$", correct: false, explanation: "Incorrecto. La relación estequiométrica entre $\\text{H}_2$ y $\\text{NH}_3$ es $3:2$." },
+          { text: "$4\\text{ moles}$", correct: true, explanation: "¡Correcto! Por cada $3\\text{ moles}$ de $\\text{H}_2$ obtienes $2\\text{ moles}$ de $\\text{NH}_3$. Con $6\\text{ moles}$: $6 \\cdot \\frac{2}{3} = 4\\text{ moles}$." },
+          { text: "$6\\text{ moles}$", correct: false, explanation: "Incorrecto. Debes multiplicar por el factor de conversión $\\frac{2\\text{ mol NH}_3}{3\\text{ mol H}_2}$." },
+          { text: "$12\\text{ moles}$", correct: false, explanation: "Incorrecto. Recuerda relacionar los coeficientes estequiométricos de la ecuación ajustada." }
+        ]
+      },
+      {
+        topic: "Estequiometría",
+        question: "¿Cuál es la masa molar del agua ($\\text{H}_2\\text{O}$)? (Masas atómicas: $\\text{H} = 1\\text{ g/mol}$, $\\text{O} = 16\\text{ g/mol}$)",
+        options: [
+          { text: "$17\\text{ g/mol}$", correct: false, explanation: "Incorrecto. Has olvidado que la molécula tiene dos átomos de hidrógeno ($2 \\cdot 1 + 16$)." },
+          { text: "$18\\text{ g/mol}$", correct: true, explanation: "¡Correcto! $M(\\text{H}_2\\text{O}) = 2 \\cdot 1 + 16 = 18\\text{ g/mol}$." },
+          { text: "$32\\text{ g/mol}$", correct: false, explanation: "Incorrecto. $32\\text{ g/mol}$ corresponde a la masa del oxígeno molecular ($\\text{O}_2$)." },
+          { text: "$34\\text{ g/mol}$", correct: false, explanation: "Incorrecto. $34\\text{ g/mol}$ es la masa molar del agua oxigenada ($\\text{H}_2\\text{O}_2$)." }
+        ]
+      },
+      {
+        topic: "Cinemática",
+        question: "Un cuerpo realiza un Movimiento Circular Uniforme (MCU) girando a $10\\text{ rad/s}$ en una trayectoria de $2\\text{ m}$ de radio. ¿Cuál es su aceleración centrípeta?",
+        options: [
+          { text: "$20\\text{ m/s}^2$", correct: false, explanation: "Incorrecto. La aceleración centrípeta es $a_c = \\omega^2 \\cdot r$. No olvides elevar la velocidad angular al cuadrado." },
+          { text: "$200\\text{ m/s}^2$", correct: true, explanation: "¡Correcto! $a_c = \\omega^2 \\cdot r = (10)^2 \\cdot 2 = 100 \\cdot 2 = 200\\text{ m/s}^2$." },
+          { text: "$100\\text{ m/s}^2$", correct: false, explanation: "Incorrecto. Olvidaste multiplicar por el radio de la trayectoria ($2\\text{ m}$)." },
+          { text: "$50\\text{ m/s}^2$", correct: false, explanation: "Incorrecto. Recuerda la fórmula $a_c = \\omega^2 \\cdot r$." }
+        ]
+      },
+      {
+        topic: "Dinámica",
+        question: "¿Qué enuncia la Tercera Ley de Newton (Principio de Acción y Reacción)?",
+        options: [
+          { text: "Si la fuerza neta sobre un cuerpo es cero, mantendrá su velocidad constante.", correct: false, explanation: "Este es el enunciado de la Primera Ley de Newton (Principio de Inercia)." },
+          { text: "Cuando un cuerpo ejerce una fuerza sobre otro, este ejerce sobre el primero una fuerza igual en intensidad y dirección, pero de sentido contrario.", correct: true, explanation: "¡Correcto! Siempre que dos cuerpos interactúan, surgen dos fuerzas pares de acción y reacción que actúan sobre cuerpos distintos." },
+          { text: "La aceleración de un objeto es directamente proporcional a la fuerza neta e inversamente proporcional a su masa.", correct: false, explanation: "Este es el enunciado de la Segunda Ley de Newton ($F = m \\cdot a$)." },
+          { text: "La energía ni se crea ni se destruye, solo se transforma.", correct: false, explanation: "Este es el principio de conservación de la energía, no una ley de Newton." }
+        ]
+      },
+      {
+        topic: "Energía",
+        question: "Un motor realiza un trabajo útil de $400\\text{ J}$ consumiendo una energía total de $500\\text{ J}$. ¿Cuál es su rendimiento?",
+        options: [
+          { text: "$80\\%$", correct: true, explanation: "¡Correcto! El rendimiento es $\\eta = \\frac{W_{\\text{útil}}}{E_{\\text{suministrada}}} \\cdot 100 = \\frac{400}{500} \\cdot 100 = 80\\%$." },
+          { text: "$125\\%$", correct: false, explanation: "Incorrecto. El rendimiento nunca puede superar el $100\\%$. Dividiste la energía consumida entre el trabajo útil." },
+          { text: "$20\\%$", correct: false, explanation: "Incorrecto. $20\\%$ es el porcentaje de energía perdida en forma de calor no aprovechado." },
+          { text: "$50\\%$", correct: false, explanation: "Incorrecto. Aplica la fórmula del rendimiento: $\\eta = \\frac{E_{\\text{útil}}}{E_{\\text{total}}} \\times 100$." }
+        ]
+      }
+    ];
+
+    let currentQuestionIndex = 0;
+    let score = 0;
+    let streak = 0;
+    let answered = false;
+
+    function startGame() {
+      currentQuestionIndex = 0;
+      score = 0;
+      streak = 0;
+      
+      document.getElementById('start-screen').classList.add('hidden');
+      document.getElementById('result-screen').classList.add('hidden');
+      document.getElementById('quiz-screen').classList.remove('hidden');
+      document.getElementById('quiz-screen').classList.add('flex');
+      document.getElementById('stats-header').classList.remove('hidden');
+      
+      updateStats();
+      showQuestion();
+    }
+
+    function showQuestion() {
+      answered = false;
+      const q = questions[currentQuestionIndex];
+      
+      document.getElementById('question-count').innerText = `Pregunta ${currentQuestionIndex + 1} de ${questions.length}`;
+      document.getElementById('topic-badge').innerText = q.topic;
+      document.getElementById('question-text').innerHTML = q.question;
+      
+      // Update progress bar
+      const progressPercent = ((currentQuestionIndex) / questions.length) * 100;
+      document.getElementById('progress-bar').style.width = `${progressPercent}%`;
+
+      // Hide explanation & next button
+      document.getElementById('explanation-box').classList.add('hidden');
+      document.getElementById('next-btn').classList.add('hidden');
+
+      // Populate options
+      const container = document.getElementById('options-container');
+      container.innerHTML = '';
+
+      q.options.forEach((option, index) => {
+        const btn = document.createElement('button');
+        btn.className = "w-full text-left p-4 rounded-xl border border-slate-700 bg-slate-900/60 hover:bg-slate-700/50 transition-all font-medium text-slate-200 flex items-center justify-between group";
+        btn.onclick = () => selectOption(index);
+        
+        btn.innerHTML = `
+          <span>${option.text}</span>
+          <span class="w-6 h-6 rounded-full border border-slate-600 flex items-center justify-center text-xs text-slate-400 group-hover:border-indigo-400 group-hover:text-indigo-400 transition-colors">
+            ${String.fromCharCode(65 + index)}
+          </span>
+        `;
+        container.appendChild(btn);
+      });
+
+      // Render KaTeX for rendered formulas
+      if (window.renderMathInElement) {
+        renderMathInElement(document.body, {
+          delimiters: [
+            {left: '$$', right: '$$', display: true},
+            {left: '$', right: '$', display: false}
+          ]
+        });
+      }
+    }
+
+    function selectOption(selectedIndex) {
+      if (answered) return;
+      answered = true;
+
+      const q = questions[currentQuestionIndex];
+      const selectedOption = q.options[selectedIndex];
+      const container = document.getElementById('options-container');
+      const buttons = container.children;
+
+      // Disable all buttons and show colors
+      q.options.forEach((option, idx) => {
+        const btn = buttons[idx];
+        btn.disabled = true;
+        btn.classList.remove('hover:bg-slate-700/50');
+
+        if (option.correct) {
+          btn.classList.add('bg-emerald-950/80', 'border-emerald-500', 'text-emerald-200');
+        } else if (idx === selectedIndex) {
+          btn.classList.add('bg-rose-950/80', 'border-rose-500', 'text-rose-200');
+        } else {
+          btn.classList.add('opacity-50');
+        }
+      });
+
+      // Update Score & Streak
+      if (selectedOption.correct) {
+        score += 10 + streak * 2; // Bonus points for streak
+        streak++;
+      } else {
+        streak = 0;
+      }
+      updateStats();
+
+      // Show Explanation
+      const explanationBox = document.getElementById('explanation-box');
+      const explanationText = document.getElementById('explanation-text');
+      const explanationTitle = document.getElementById('explanation-title');
+
+      if (selectedOption.correct) {
+        explanationBox.className = "mt-6 p-4 rounded-xl border bg-emerald-950/40 border-emerald-800/80 text-sm leading-relaxed";
+        explanationTitle.className = "font-bold mb-1 text-emerald-400 flex items-center gap-2";
+        explanationTitle.innerHTML = " ¡Respuesta Correcta!";
+      } else {
+        explanationBox.className = "mt-6 p-4 rounded-xl border bg-rose-950/40 border-rose-800/80 text-sm leading-relaxed";
+        explanationTitle.className = "font-bold mb-1 text-rose-400 flex items-center gap-2";
+        explanationTitle.innerHTML = "❌ Respuesta Incorrecta";
+      }
+
+      explanationText.innerHTML = selectedOption.explanation;
+      explanationBox.classList.remove('hidden');
+
+      // Show Next Button
+      document.getElementById('next-btn').classList.remove('hidden');
+
+      // Re-render LaTeX in explanations
+      if (window.renderMathInElement) {
+        renderMathInElement(explanationBox, {
+          delimiters: [
+            {left: '$$', right: '$$', display: true},
+            {left: '$', right: '$', display: false}
+          ]
+        });
+      }
+    }
+
+    function updateStats() {
+      document.getElementById('score').innerText = score;
+      document.getElementById('streak').innerText = streak;
+    }
+
+    function nextQuestion() {
+      currentQuestionIndex++;
+      if (currentQuestionIndex < questions.length) {
+        showQuestion();
+      } else {
+        showResults();
+      }
+    }
+
+    function showResults() {
+      document.getElementById('quiz-screen').classList.add('hidden');
+      document.getElementById('quiz-screen').classList.remove('flex');
+      document.getElementById('result-screen').classList.remove('hidden');
+
+      const maxScore = questions.length * 10;
+      const accuracy = Math.round((score / (maxScore + (questions.length * 2))) * 100);
+
+      document.getElementById('final-score').innerText = score;
+      document.getElementById('final-accuracy').innerText = `${Math.min(100, Math.round((score / 100) * 100))}%`;
+
+      const title = document.getElementById('result-title');
+      const subtitle = document.getElementById('result-subtitle');
+      const icon = document.getElementById('result-icon');
+
+      if (score >= 80) {
+        icon.innerText = "🌟";
+        title.innerText = "¡Excelente Trabajo!";
+        subtitle.innerText = "Tienes dominados los conceptos clave de Física y Química de 1º de Bachillerato.";
+      } else if (score >= 50) {
+        icon.innerText = "👍";
+        title.innerText = "¡Buen Intento!";
+        subtitle.innerText = "Vas por buen camino, pero conviene repasar algunos temas antes del examen.";
+      } else {
+        icon.innerText = "📚";
+        title.innerText = "Necesitas Repasar";
+        subtitle.innerText = "Revisa los ejercicios y las explicaciones para reforzar los conceptos principales.";
+      }
+    }
+  </script>
+</body>
+</html>
+```eof
+
+### ¿Qué incluye este juego de repaso?
+
+1. **10 preguntas representativas** divididas entre los 5 bloques del curso:
+   - **Cinemática:** MRUA, movimiento circular (MCU).
+   - **Dinámica:** Plano horizontal con rozamiento, Leyes de Newton.
+   - **Energía:** Conservación de la energía mecánica, rendimiento de máquinas.
+   - **Formulación Inorgánica:** Nomenclatura IUPAC sistemática de óxidos y oxoácidos.
+   - **Estequiometría:** Relaciones moleculares y masa molar.
+2. **Sistema de Puntuación y Racha:** Bonus de puntos acumulativos si respondes varias preguntas seguidas correctamente.
+3. **Explicaciones en tiempo real:** Cada respuesta incluye una retroalimentación detallada explicando el desarrollo paso a paso del problema o la regla de nomenclatura correspondiente.
+4. **Formato matemático elegante:** Renderizado automático de fórmulas y unidades físicas mediante LaTeX (KaTeX).
